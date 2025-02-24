@@ -14,28 +14,30 @@ grow_vertical = 2
 script = ExtResource("1_q20a0")
 metadata/_edit_use_anchors_ = true
 
-[node name="hbox" type="HBoxContainer" parent="Screen"]
+[node name="vbox" type="VBoxContainer" parent="Screen"]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -63.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
 
-[node name="MessageEdit" type="LineEdit" parent="Screen/hbox"]
+[node name="message" type="VBoxContainer" parent="Screen/vbox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="hbox" type="HBoxContainer" parent="Screen/vbox"]
+custom_minimum_size = Vector2(0, 63.8)
+layout_mode = 2
+
+[node name="MessageEdit" type="LineEdit" parent="Screen/vbox/hbox"]
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Mensagem"
 
-[node name="SendButton" type="Button" parent="Screen/hbox"]
+[node name="SendString" type="Button" parent="Screen/vbox/hbox"]
 layout_mode = 2
 text = "SEND"
 
-[node name="SendString" type="Button" parent="Screen/hbox"]
-layout_mode = 2
-text = "SEND"
-
-[connection signal="pressed" from="Screen/hbox/SendButton" to="Screen" method="_on_send_button_pressed"]
-[connection signal="pressed" from="Screen/hbox/SendString" to="Screen" method="_on_send_string_pressed"]
+[connection signal="pressed" from="Screen/vbox/hbox/SendString" to="Screen" method="_on_send_string_pressed"]
