@@ -1,14 +1,20 @@
 extends Control
 
-
-@onready var Message: VBoxContainer = $vbox/message
-@onready var Message_edit: LineEdit = $vbox/hbox/MessageEdit
+signal NewMessage(_message: String)
 
 var enet: ENetConnection = ENetConnection.new()
 
 enum MESSAGE {
-	MESSAGE_RECEIVED,
+	PROFILE_SEND,
+	PROFILE_RECEIVED,
+	PROFILE_LOGIN,
+	PROFILE_REGISTER,
+	PROFILE_INSUFFICIENT_CHARACTER,
+	PROFILE_USERNAME_ERR,
+	PROFILE_PASSWORD_ERR,
+	
 	MESSAGE_SEND,
+	MESSAGE_RECEIVED,
 	LOADER_MESSAGE,
 }
 
@@ -34,27 +40,48 @@ func _process(delta: float) -> void:
 	
 	match event[0]:
 		ENetConnection.EVENT_RECEIVE:
-			var message: Array = bytes_to_var(event[1].get_packet())
+			
+			var message: Array = get_message(event[1].get_packet())
 			match message[0]:
 				MESSAGE.MESSAGE_RECEIVED:
-					var rich = RichTextLabel.new()
-					rich.scroll_active = false
-					rich.bbcode_enabled = true
-					rich.fit_content = true
-					rich.text = message[1]
-					
-					Message.add_child(rich)
+					NewMessage.emit(message[1])
 
 
-func _on_send_string_pressed() -> void:
+func send_profile(username: String, password: String) -> void:
 	var message_send = PackedByteArray()
-	if Message_edit.text.length() > 0:
-		message_send.append(MESSAGE.MESSAGE_SEND)
-		add_string_bytes(message_send,Message_edit.text)
-		
-		enet.broadcast(0,message_send,0)
-		enet.flush() 
+	
+	var username_size: int = 1 + username.length()
+	var password_size: int = (1 + username_size) + password.length()
+	
+	message_send.append(MESSAGE.PROFILE_SEND)
+	message_send.append(1 + 4)
+	message_send.append(username_size + 4)
+	message_send.append(username_size + 1 + 4)
+	message_send.append(password_size + 4)
+	
+	add_string_bytes(message_send,username)
+	add_string_bytes(message_send,password)
+	
+	enet.broadcast(0,message_send,0)
+	enet.flush() 
+
+func send_message(text: String) -> void:
+	var message_send = PackedByteArray()
+	
+	message_send.append(MESSAGE.MESSAGE_SEND)
+	add_string_bytes(message_send,text)
+	
+	enet.broadcast(0,var_to_bytes([MESSAGE.MESSAGE_SEND,text]),0)
+	enet.flush() 
 
 func add_string_bytes(packedByte: PackedByteArray, message: String) -> void:
 	for i in message.to_utf8_buffer():
 		packedByte.append(i)
+
+func get_message(_packet: PackedByteArray) -> Array:
+	var bytes: PackedByteArray = PackedByteArray()
+	
+	for byte in _packet:
+		bytes.append(int(byte))
+	
+	return bytes_to_var(bytes)

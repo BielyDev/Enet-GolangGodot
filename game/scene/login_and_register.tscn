@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1u1ymw8ubdqc"]
+
+[ext_resource type="Script" path="res://script/login_and_register.gd" id="1_jrve8"]
+
+[node name="LoginAndRegister" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jrve8")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 140
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 140
+theme_override_constants/margin_bottom = 60
+
+[node name="Panel" type="PanelContainer" parent="Panel/Margin"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/margin_left = 240
+theme_override_constants/margin_right = 240
+
+[node name="vbox" type="VBoxContainer" parent="Panel/Margin/Margin"]
+layout_mode = 2
+alignment = 1
+
+[node name="hbox" type="HBoxContainer" parent="Panel/Margin/Margin/vbox"]
+layout_mode = 2
+
+[node name="vbox" type="VBoxContainer" parent="Panel/Margin/Margin/vbox/hbox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Username" type="HBoxContainer" parent="Panel/Margin/Margin/vbox/hbox/vbox"]
+layout_mode = 2
+
+[node name="Tittle" type="Label" parent="Panel/Margin/Margin/vbox/hbox/vbox/Username"]
+layout_mode = 2
+text = "USERNAME: "
+
+[node name="Edit" type="LineEdit" parent="Panel/Margin/Margin/vbox/hbox/vbox/Username"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "USERNAME"
+alignment = 1
+
+[node name="Password" type="HBoxContainer" parent="Panel/Margin/Margin/vbox/hbox/vbox"]
+layout_mode = 2
+
+[node name="Tittle" type="Label" parent="Panel/Margin/Margin/vbox/hbox/vbox/Password"]
+layout_mode = 2
+text = "PASSWORD: "
+
+[node name="Edit" type="LineEdit" parent="Panel/Margin/Margin/vbox/hbox/vbox/Password"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "PASSWORD"
+alignment = 1
+secret = true
+
+[node name="View" type="Button" parent="Panel/Margin/Margin/vbox/hbox"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "View"
+
+[node name="Warning" type="Label" parent="Panel/Margin/Margin/vbox"]
+visible = false
+layout_mode = 2
+
+[node name="hs" type="HSeparator" parent="Panel/Margin/Margin/vbox"]
+layout_mode = 2
+
+[node name="Send" type="Button" parent="Panel/Margin/Margin/vbox"]
+layout_mode = 2
+text = "ENTER CHAT"
+
+[connection signal="pressed" from="Panel/Margin/Margin/vbox/hbox/View" to="." method="_on_view_pressed"]
+[connection signal="pressed" from="Panel/Margin/Margin/vbox/Send" to="." method="_on_send_pressed"]

@@ -6,10 +6,18 @@ import (
 )
 
 
-type MESSAGE uint16
+type MESSAGE uint8
 const(
-	MESSAGE_RECEIVED = iota
-	MESSAGE_SEND
+	PROFILE_SEND = 0
+	PROFILE_RECEIVED = 1
+	PROFILE_LOGIN
+	PROFILE_REGISTER
+	PROFILE_INSUFFICIENT_CHARACTER
+	PROFILE_USERNAME_ERR
+	PROFILE_PASSWORD_ERR
+	
+	MESSAGE_SEND = 7
+	MESSAGE_RECEIVED
 	LOADER_MESSAGE
 )
 
@@ -44,44 +52,156 @@ func main() {
 }
 
 func received_packet(_packet enet.Event){
-	var message []byte = _packet.GetPacket().GetData()
-	
-	switch message[0]{
-		case MESSAGE_SEND:
-			send_all_client(MESSAGE_RECEIVED,get_message(message))
-	}
+	var _message_byte []byte = _packet.GetPacket().GetData()
+	var message []interface{} = GdDeserialize(_message_byte)
 
+	switch message[0]{
+		case uint8(MESSAGE_SEND):
+			send_all_client([]interface{}{uint8(MESSAGE_RECEIVED), message[1]})
+			//_packet.GetPeer().SendBytes(GdSerialize([]interface{}{uint8(MESSAGE_RECEIVED), "Oi"}),0,0)
+		case PROFILE_SEND:
+			fmt.Print(message,"\n")
+
+			//var _type_message uint8
+			//var _err error
+
+			//_type_message, _err = deserialize_profile(message)
+
+			//if _err != nil{
+			//	packet.GetPeer().SendBytes()
+			//}
+		default:
+			fmt.Println("O tipo", message[0],"não existe :(")
+			
+	}
 }
 
+/*
+func deserialize_profile(_message []byte) (uint8, error) {
+	//var real_message []interface{}
+
+	//var _password_byte [2]byte = [2]byte{_message[3],_message[4]}
+	//var _password_size uint8 = _password_byte[1]-_password_byte[0]
+
+	var _username string
+	var _err error
+	
+	_username, _err = verify_username(_message)
+
+	if _err != nil{
+		return _err
+	}
+
+	fmt.Print(_username,"\n");
+
+}
+)
+func verify_username(_message []byte) (string, error) {
+	var _username_byte [2]byte = [2]byte{_message[1],_message[2]}
+	var _username_size uint8 = _username_byte[1]-_username_byte[0]
+
+	if _username_size < 4{
+		fmt.Print("Nome precisa de ao menos 4 caracteres!")
+		return "", errors.New("Nome precisa de ao menos 4 caracteres!")
+	}
+
+	var _username string = string(_message[_message[1]:_message[2]])
+
+	var character uint8
+	for character = 0; character < _username_size; character += 1{
+		if _username[character] == 32{
+			fmt.Print("O nome não pode conter espaços!")
+			return "", errors.New("O nome não pode conter espaços!")
+		}
+	}
+
+	return _username, nil
+}
+*/
 func loaderMessage(peer enet.Peer){
 	for i := 0; i < len(save_message); i += 1{
 		peer.SendBytes(save_message[i].([]byte), 0, enet.PacketFlagReliable)
 	}
 }
 
-func send_all_client(_type_message uint8, _message []byte) {
-	var finished_message []byte
 
-	finished_message = append(finished_message, 28, 0, 0, 0)
-	finished_message = append(finished_message, 2, 0, 0, 0)
-	finished_message = append(finished_message, 2, 0, 0, 0)
-	finished_message = append(finished_message, _type_message, 0, 0, 0)
-	finished_message = append(finished_message, 4, 0, 0, 0)
-	
-	
-	finished_message = append(finished_message, byte(len(_message)), 0, 0, 0)
+func GdDeserialize(_message_byte[]byte) ([]interface{}) {
 
-	for i := 0; i < len(_message); i += 1{
-		finished_message = append(finished_message, _message[i])
+	if _message_byte[0] != 28{
+		return nil
 	}
 
-	finished_message = append(finished_message, 0, 0)
-	save_message = append(save_message, finished_message)
+	var _serial_message []interface{}
+	var _var_pass uint8 = uint8(len(_message_byte))
 
-	for peer_number := 0; peer_number < len(allPeers); peer_number += 1{
-		allPeers[peer_number].SendBytes( finished_message, 0, enet.PacketFlagReliable)
+	var byte uint8
+	for byte = 0; byte < _var_pass; byte += 4{
+		var bytes = _message_byte[byte:byte+4]
+
+		if byte > 4{
+			switch bytes[0]{
+				case 28:
+					fmt.Println("Array")
+				case 2:
+					_serial_message = append(_serial_message, uint8( _message_byte[byte + 4]))
+				case 4:
+					_serial_message = append(_serial_message, string(_message_byte[byte + 8:byte + 8 + (_message_byte[byte + 4])]))
+			}
+		}
+
 	}
 
+	fmt.Println(_serial_message)
+	return _serial_message
+}
+
+func GdSerialize(new_array[]interface{}) []byte {
+	var _serial_message []byte
+
+	_serial_message = append(_serial_message, 28, 0, 0, 0)
+	_serial_message = append(_serial_message, byte(len(new_array)), 0, 0, 0)
+
+	var _key uint8
+	for _key = 0; _key < uint8(len(new_array)); _key++{
+		switch _value := new_array[_key].(type){
+			case uint8:
+				_serial_message = append(_serial_message, 2, 0, 0, 0)
+				_serial_message = append(_serial_message, byte(_value), 0, 0, 0)
+			case string:
+				_serial_message = append(_serial_message, 4, 0, 0, 0)
+				_serial_message = append(_serial_message, byte(len(_value)), 0, 0, 0)
+				
+				_serial_message = append(_serial_message, string_to_bytes(_value)...)
+		}
+
+	}
+
+	_serial_message = append(_serial_message, 0, 0)
+
+	return _serial_message
+}
+
+func bytes_to_string(_message []byte) string {
+	return string(_message)
+}
+func string_to_bytes(_message string) []byte {
+	var _message_byte []byte
+
+	var _character uint8
+	for _character = 0; _character < uint8(len(_message)); _character++{
+		_message_byte = append(_message_byte, byte(_message[_character]))
+	}
+
+	return _message_byte
+}
+
+func send_all_client(_message []interface{}) {	
+	var _new_message []byte = GdSerialize(_message)
+
+	var _peer_number uint8
+	for _peer_number = 0; _peer_number < uint8(len(allPeers)); _peer_number ++{
+		allPeers[_peer_number].SendBytes( _new_message, 0, enet.PacketFlagReliable)
+	}
 }
 
 func new_host() bool {

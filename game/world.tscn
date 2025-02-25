@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dfkxlacvl2m5s"]
 
-[ext_resource type="Script" path="res://script/host.gd" id="1_q20a0"]
+[ext_resource type="Script" path="res://script/screen.gd" id="1_w36be"]
 
 [node name="World" type="CanvasLayer"]
 
@@ -11,7 +11,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_q20a0")
+script = ExtResource("1_w36be")
 metadata/_edit_use_anchors_ = true
 
 [node name="vbox" type="VBoxContainer" parent="Screen"]
@@ -36,8 +36,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Mensagem"
 
-[node name="SendString" type="Button" parent="Screen/vbox/hbox"]
+[node name="Send" type="Button" parent="Screen/vbox/hbox"]
 layout_mode = 2
 text = "SEND"
 
-[connection signal="pressed" from="Screen/vbox/hbox/SendString" to="Screen" method="_on_send_string_pressed"]
+[connection signal="pressed" from="Screen/vbox/hbox/Send" to="Screen" method="_on_send_pressed"]
