@@ -42,8 +42,9 @@ func _process(delta: float) -> void:
 		ENetConnection.EVENT_RECEIVE:
 			
 			var message: Array = get_message(event[1].get_packet())
+			print(message)
 			match message[0]:
-				MESSAGE.MESSAGE_RECEIVED:
+				7:
 					NewMessage.emit(message[1])
 
 
@@ -59,29 +60,17 @@ func send_profile(username: String, password: String) -> void:
 	message_send.append(username_size + 1 + 4)
 	message_send.append(password_size + 4)
 	
-	add_string_bytes(message_send,username)
-	add_string_bytes(message_send,password)
-	
 	enet.broadcast(0,message_send,0)
 	enet.flush() 
 
 func send_message(text: String) -> void:
-	var message_send = PackedByteArray()
-	
-	message_send.append(MESSAGE.MESSAGE_SEND)
-	add_string_bytes(message_send,text)
-	
 	enet.broadcast(0,var_to_bytes([MESSAGE.MESSAGE_SEND,text]),0)
 	enet.flush() 
 
-func add_string_bytes(packedByte: PackedByteArray, message: String) -> void:
-	for i in message.to_utf8_buffer():
-		packedByte.append(i)
-
 func get_message(_packet: PackedByteArray) -> Array:
-	var bytes: PackedByteArray = PackedByteArray()
+	var bytes: Array = Array()
 	
 	for byte in _packet:
-		bytes.append(int(byte))
+		bytes.append(int(str(byte)))
 	
 	return bytes_to_var(bytes)

@@ -53,14 +53,13 @@ func main() {
 
 func received_packet(_packet enet.Event){
 	var _message_byte []byte = _packet.GetPacket().GetData()
-	var message []interface{} = GdDeserialize(_message_byte)
+	var _message []interface{} = GdDeserialize(_message_byte)
 
-	switch message[0]{
-		case uint8(MESSAGE_SEND):
-			send_all_client([]interface{}{uint8(MESSAGE_RECEIVED), message[1]})
-			//_packet.GetPeer().SendBytes(GdSerialize([]interface{}{uint8(MESSAGE_RECEIVED), "Oi"}),0,0)
-		case PROFILE_SEND:
-			fmt.Print(message,"\n")
+	switch _message[0]{
+		case int32(MESSAGE_SEND):
+			send_all_client([]interface{}{uint8(MESSAGE_RECEIVED), _message[1]})
+		case int32(PROFILE_SEND):
+			fmt.Print(_message,"\n")
 
 			//var _type_message uint8
 			//var _err error
@@ -71,7 +70,7 @@ func received_packet(_packet enet.Event){
 			//	packet.GetPeer().SendBytes()
 			//}
 		default:
-			fmt.Println("O tipo", message[0],"não existe :(")
+			fmt.Printf("O tipo", _message[0]," do tipo não existe :(")
 			
 	}
 }
@@ -133,22 +132,29 @@ func GdDeserialize(_message_byte[]byte) ([]interface{}) {
 
 	var _serial_message []interface{}
 	var _var_pass uint8 = uint8(len(_message_byte))
-
+	
 	var byte uint8
+	var string_count uint8
 	for byte = 0; byte < _var_pass; byte += 4{
-		var bytes = _message_byte[byte:byte+4]
+		var bytes = _message_byte[byte:byte + 4]
 
 		if byte > 4{
 			switch bytes[0]{
 				case 28:
 					fmt.Println("Array")
 				case 2:
-					_serial_message = append(_serial_message, uint8( _message_byte[byte + 4]))
+					_serial_message = append(_serial_message, int32( _message_byte[byte + 4]))
 				case 4:
-					_serial_message = append(_serial_message, string(_message_byte[byte + 8:byte + 8 + (_message_byte[byte + 4])]))
+					if string_count == 0{
+						_serial_message = append(_serial_message, string(_message_byte[byte + 8:byte + 8 + (_message_byte[byte + 4])]))
+					}
+					
+					string_count ++
+					if string_count == 2{
+						string_count = 0
+					}
 			}
 		}
-
 	}
 
 	fmt.Println(_serial_message)
@@ -176,8 +182,6 @@ func GdSerialize(new_array[]interface{}) []byte {
 
 	}
 
-	_serial_message = append(_serial_message, 0, 0)
-
 	return _serial_message
 }
 
@@ -189,7 +193,18 @@ func string_to_bytes(_message string) []byte {
 
 	var _character uint8
 	for _character = 0; _character < uint8(len(_message)); _character++{
-		_message_byte = append(_message_byte, byte(_message[_character]))
+		_message_byte = append(_message_byte, byte(int32(_message[_character])))
+	}
+
+	var _min_size uint8 = 4
+	if (uint8(len(_message)) * 2) > _min_size{
+		_min_size = uint8(len(_message)) * 2
+	}
+
+	for _character = 0; _character <= _min_size; _character++{
+		if _character > uint8(len(_message_byte)){
+			_message_byte = append(_message_byte, 0)
+		}
 	}
 
 	return _message_byte

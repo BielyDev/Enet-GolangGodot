@@ -8,6 +8,7 @@ func _ready() -> void:
 
 
 func new_message(_message: String) -> void:
+	print(_message)
 	var rich = RichTextLabel.new()
 	
 	rich.scroll_active = false
